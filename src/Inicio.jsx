@@ -11,12 +11,11 @@ function Inicio() {
        <Navbar></Navbar>
        </header>
         </div>
-        
         <br />
-         <body>
+         <div>
           <br />
           <Tabla></Tabla>
-         </body>
+         </div>
          <footer></footer>
      
       </div>

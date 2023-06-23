@@ -1,36 +1,22 @@
 import React, { useState } from "react";
-import { Table, Button } from "react-bootstrap";
+import { Table, Button, FormGroup } from "react-bootstrap";
 import "./Tabla.css";
-import { Col, Row } from "react-bootstrap";
-
-//----------------------------------------- ARBOL-------------------------------------------------------------------------------
-var createTree = require("functional-red-black-tree");
-var arbol = createTree();
-
+import { Col, Row, Form } from "react-bootstrap";
+import SplayTree from 'splaytree';
 //---------------------------------------------------------------------------------------------------------------------------
 const Historial = () => {
+  const arbol = new SplayTree();
   const [showModal, setShowModal] = useState(false);
+  const [alumno, setAlumno] = useState({});
+  const [Nombres, setNombres] = useState({});
+  const [Categorias, setCategorias] = useState({});
   // const [participanteIdSeleccionado, setparticipanteIdSeleccionado] = useState(null);
   const [participantePerPage, setparticipantePerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchFolio, setSearchFolio] = useState('');
   const [folio, setfolio] = useState(null);
-
-  const handleFolio = () => {
-    if (arbol.getFolio == null) {
-      for (var i = 0; i < 100000; ++i) {
-        folio = folio.insert(Math.random(1000, 9999));
-      }
-      setfolio(folio);
-    } else {
-      do {
-        for (var i = 0; i < 100000; ++i) {
-          folio = folio.insert(Math.random(1000, 9999));
-        }
-      } while (folio.equals(arbol.getFolio));
-      setfolio(folio);
-    }
-  };
+  const [nombre, setNombre] = useState("");
+  const [categoria, setCategoria] = useState("");
 
   //--------------------------------------------------------------------------------------------------------------------------
   const handleparticipantePerPageChange = (event) => {
@@ -47,7 +33,44 @@ const Historial = () => {
     setSearchFolio(event.target.value);
   };
 
-  const participante = [{ folio: 1, nombre: "", categoria: "", Eliminar:Button }];
+  const generarNumero = () =>{
+    let llaves = arbol.keys();
+    console.log(llaves);
+    const min = 1000;
+    const max = 9999;
+    var numero = numero = Math.floor(Math.random() * (max - min + 1)) + min;
+    return numero;
+  }
+
+  const creacionAlumno = (participante) =>{
+    if(nombre.trim()!=="" && categoria !== "Escoja la categoría"){
+      setNombres((prevState) => ({
+        ...prevState,
+        [participante]: Nombres,
+      }));
+      setCategorias((prevState) => ({
+        ...prevState,
+        [participante]: Categorias,
+      }));
+    }
+    else{
+      console.log("vacio");
+    }
+  }
+
+  useState(() => {
+    const initialStatus = {};
+    const initialStatus1 = {};
+    participante.forEach((participante) => {
+      initialStatus[participante.folio] = '';
+      initialStatus1[participante.folio] = '';
+    });
+    setNombres(initialStatus);
+    setCategorias(initialStatus1);
+  }
+
+  )
+  const participante = [{ folio: generarNumero(), nombre: "", categoria: "", }];
 
   //----------------------------------------------------Tabla-------------------------------------------------------------
   const indexOfLastparticipante = currentPage * participantePerPage;
@@ -80,7 +103,7 @@ const Historial = () => {
             </div>
           </Col>
           <Col>
-            <div style={{ marginLeft: "120px" }} className="busqueda">
+            <div style={{ marginLeft: "15%" }} className="busqueda">
               <label>Buscar participante por folio: </label>
               <input
                 type="text"
@@ -109,12 +132,11 @@ const Historial = () => {
                 {currentparticipante.map((participante) => (
                   <tr key={participante.folio}>
                     <td>{participante.folio}</td>
-                    <td>{participante.nombre}</td>
-                    <td>{participante.categoria}</td>
+                    <td>{Nombres[participante.folio]}</td>
+                    <td>{Categorias[participante.folio]}</td>
                     <td>
                       <Button
                         variant="light"
-                        oncliak=''
                         color="blue"
                       >Eliminar</Button>
                     </td>
@@ -139,9 +161,48 @@ const Historial = () => {
           ))}
         </ul>
       </div>
+      <div>
+        <Form style={{backgroundColor:'rgba(196, 196, 196)', width:'50%', margin:"0 auto", paddingBlock:'2%'}}>
+          <Form.Group className="mb-3" controlId="exampleForm.ControlInput1" style={{width: "50%", margin:"0 auto"}}>
+            <Form.Label>Ingresar nombre</Form.Label>
+            <Form.Control 
+              value={nombre} 
+              onChange={ev => {setNombre(ev.target.value)}}
+              type="text" 
+              placeholder="Nombre..." />
+          </Form.Group>
+          <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1" style={{width: "50%", margin:"0 auto"}}>
+            <Form.Label>Ingresar categoría</Form.Label>
+            <Form.Select onChange={ev => {setCategoria(ev.target.value)}}>
+              <option >Escoja la categoría</option>
+              <option value="1">Principiante</option>
+              <option value="2">Intermediario</option>
+              <option value="3">Avanzado</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group className="d-flex justify-content-center" onClick={() =>{
+            setfolio(generarNumero())
+            setAlumno(crearAlumno(nombre, folio, categoria))
+            creacionAlumno(participante, nombre, categoria)
+            arbol.insert(folio, alumno);
+          }
+            
+          }>
+            <Button className="btn btn-success mt-3">
+                Guardar alumno
+            </Button>
+          </Form.Group>
+        </Form>
+      </div>
       
     </div>
   );
 };
+
+
+function crearAlumno(nombre, folio, categoria){
+  var alumno = {folio, nombre, categoria}
+  return alumno;
+}
 
 export default Historial;
