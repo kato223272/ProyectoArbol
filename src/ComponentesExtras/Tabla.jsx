@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Table, Button, FormGroup } from "react-bootstrap";
 import "./Tabla.css";
 import { Col, Row, Form } from "react-bootstrap";
+import { render } from "@testing-library/react";
 
 class Nodo{
   constructor(folio, categoria, nombre){
@@ -12,7 +13,10 @@ class Nodo{
     this.derecha = null;
   }
 
-  getParticipante(){ return this; }
+  getParticipante(){
+    var arreglo =  {folio: this.folio, categoria: this.categoria, nombre: this.nombre}; 
+    return arreglo; }
+  get
   getFolio(){ return this.folio; }
   getCategoria(){ return this.categoria; }
   getNombre(){ return this.nombre; }
@@ -37,13 +41,12 @@ class ArbolParticipantes{
     return this.encontrarNodo(this.raiz, folio);
   }
 
+  eliminarParticipante(folio){
+    this.raiz = this.eliminarNodo(this.raiz, folio);
+  }
+
   encontrarNodo(nodo, folio){
-    if(nodo === null || nodo === undefined){
-      return null;
-    }
-    
-    
-    if(folio === nodo.folio ){
+    if(folio === nodo.folio || nodo === null){
       return nodo;
     }
     
@@ -189,6 +192,10 @@ class ArbolParticipantes{
     return arreglo;
   }
   
+  encontrarNodo(folio){
+    return this.encontrarNodo(this.raiz, folio);
+  }
+  
 
 }
 //---------------------------------------------------------------------------------------------------------------------------
@@ -200,6 +207,7 @@ const Historial = () => {
   const [Categorias, setCategorias] = useState({});
   // const [participanteIdSeleccionado, setparticipanteIdSeleccionado] = useState(null);
   const [participantePerPage, setparticipantePerPage] = useState(5);
+  const [alumnosArbol, setAlumnosArbol] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchFolio, setSearchFolio] = useState('');
   const [folio, setfolio] = useState(null);
@@ -228,22 +236,6 @@ const Historial = () => {
     return numero;
   }
 
-  const creacionAlumno = (participante) =>{
-    if(nombre.trim()!=="" && categoria !== "Escoja la categoría"){
-      setNombres((prevState) => ({
-        ...prevState,
-        [participante]: nombre,
-      }));
-      setCategorias((prevState) => ({
-        ...prevState,
-        [participante]: categoria,
-      }));
-    }
-    else{
-      console.log("vacio");
-    }
-  }
-
 
   useState(() => {
     const participante = [
@@ -260,11 +252,20 @@ const Historial = () => {
     
   });
 
+  const handleAlumnoChange = (event, folio) =>{
+    arbolParticipantes.eliminarParticipante(folio);
+    console.log("no sirvo")
+    console.log(arbolParticipantes.toArrayArbol(arbolParticipantes.raiz));
+    console.log(arbolParticipantes );
+   
+    setAlumnosArbol(arbolParticipantes);
+  }
+
   const renderizarParticipantes = () => {
-    return(
+     return(
       <Row>
         <Col className="Tablita">
-          <Table id="Tablita" striped bordered style={{ width: "340%" }}>
+          <Table id="Tablita" striped bordered style={{ width: "100%", margin:'0 auto' }}>
             <thead>
               <tr>
                 <th>Folio</th>
@@ -274,15 +275,18 @@ const Historial = () => {
               </tr>
             </thead>
             <tbody>
-              {currentparticipante.map((participante) => (
+              {alumnos.map((participante) => (
                 <tr key={participante.folio}>
                   <td>{participante.folio}</td>
                   <td>{participante.nombre}</td>
-                  <td>{Categorias[participante.folio]}</td>
+                  <td>{participante.categoria}</td>
                   <td>
                     <Button
                       variant="light"
                       color="blue"
+                      onClick={() => {
+                        handleAlumnoChange(participante.folio);
+                      }}
                     >Eliminar</Button>
                   </td>
                 </tr>
@@ -295,10 +299,9 @@ const Historial = () => {
   }
 
   //----------------------------------------------------Tabla-------------------------------------------------------------
-  const arbol = new ArbolParticipantes();
 
-  const alumnos = arbol.toArrayArbol(arbol.raiz);
-  console.log(alumnos);
+  const alumnos = arbolParticipantes.toArrayArbol(arbolParticipantes.raiz);
+
   const indexOfLastparticipante = currentPage * participantePerPage;
   const indexOfFirstparticipante =
     indexOfLastparticipante - participantePerPage;
@@ -334,7 +337,7 @@ const Historial = () => {
               <input
                 type="text"
                 value={searchFolio}
-                onChange={handleSearchIdChange}
+                onChange={() => handleSearchIdChange()}
               />
             </div>
           </Col>
