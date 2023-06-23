@@ -2,10 +2,198 @@ import React, { useState } from "react";
 import { Table, Button, FormGroup } from "react-bootstrap";
 import "./Tabla.css";
 import { Col, Row, Form } from "react-bootstrap";
-import SplayTree from 'splaytree';
+
+class Nodo{
+  constructor(folio, categoria, nombre){
+    this.folio = folio;
+    this.categoria = categoria;
+    this.nombre = nombre;
+    this.izquierda = null;
+    this.derecha = null;
+  }
+
+  getParticipante(){ return this; }
+  getFolio(){ return this.folio; }
+  getCategoria(){ return this.categoria; }
+  getNombre(){ return this.nombre; }
+  toArrayNodo(){
+    if(this !== null){
+      var arreglo = {
+        folio: this.folio,
+        nombre: this.nombre,
+        categoria: this.categoria
+      };
+      return arreglo;
+    }
+  }
+}
+
+class ArbolParticipantes{
+  constructor(){
+    this.raiz = null;
+  }
+
+  encontrarParticipante(folio){
+    return this.encontrarNodo(this.raiz, folio);
+  }
+
+  encontrarNodo(nodo, folio){
+    if(nodo === null || nodo === undefined){
+      return null;
+    }
+    
+    
+    if(folio === nodo.folio ){
+      return nodo;
+    }
+    
+    else if(folio < nodo.folio){
+      return this.encontrarNodo(nodo.izquierda, folio);
+    }
+
+    else{
+      return this.encontrarNodo(nodo.derecha, folio);
+    }
+
+  }
+
+  addNodo(folio, categoria, nombre){
+    const nuevoNodo = new Nodo(folio, categoria, nombre);
+
+    if(!this.raiz){
+      this.raiz = nuevoNodo;
+    }
+
+    else{
+      if(!this.raiz.izquierda){
+        this.raiz.izquierda = nuevoNodo;
+      }
+      else{
+        this.insertarNodo(this.raiz, nuevoNodo);
+      }
+    }
+  }
+
+  insertarNodo(nodo, nuevoNodo){
+    if(nuevoNodo.folio < nodo.folio){
+      if(nodo.izquierda === null){
+        nodo.izquierda = nuevoNodo;
+      }
+      else{
+        this.insertarNodo(nodo.izquierda, nuevoNodo);
+      }
+    }
+
+    else{
+      if(nodo.derecha === null){
+        nodo.derecha = nuevoNodo;
+      }
+      else{
+        this.insertarNodo(nodo.derecha, nuevoNodo);
+      }
+    }
+  }
+
+  inOrdenRecorrido(nodo, participantes){
+    if(nodo !== null){
+      this.inOrdenRecorrido(nodo.izquierda, participantes);
+      participantes.push(nodo);
+      this.inOrdenRecorrido(nodo.derecha, participantes);
+    }
+  }
+
+  getParticipantes(){
+    if(!this.raiz){
+      return [];
+    }
+
+    const participantes = [];
+    this.inOrdenRecorrido(this.raiz, participantes);
+    return participantes;
+  }
+
+  eliminarNodo(nodo, folio){
+    if (nodo === null) {
+      return null;
+    } 
+    else if (folio < nodo.folio) {
+      nodo.izquierda = this.eliminarNodo(nodo.izquierda, folio);
+      return nodo;
+    } 
+    else if (folio > nodo.folio) {
+      nodo.derecha = this.eliminarNodo(nodo.derecha, folio);
+      return nodo;
+    } 
+    else {
+      if (nodo.izquierda === null && nodo.derecha === null) {
+        nodo = null;
+        return nodo;
+      } 
+      
+      else if (nodo.izquierda === null) {
+        nodo = nodo.derecha;
+        return nodo;
+      } 
+      
+      else if (nodo.derecha === null) {
+        nodo = nodo.izquierda;
+        return nodo;
+      } 
+      
+      else {
+        const nodoMinimo = this.encontrarNodoInferior(nodo.derecha);
+        nodo.folio = nodoMinimo.folio;
+        nodo.categoria = nodoMinimo.category;
+        nodo.derecha = this.eliminarNodo(nodo.derecha, nodoMinimo.folio);
+        return nodo;
+      }
+    }
+  }
+
+  encontrarNodoInferior(nodo){
+    if(nodo.izquierda === null){
+      return nodo;
+    }
+
+    else{
+      return this.encontrarNodoInferior(nodo.izquierda);
+    }
+  }
+
+  toArrayArbol(arbol) {
+    const arreglo = [];
+  
+    const tAA = (nodo) => {
+      if (!nodo) {
+        return;
+      }
+  
+      const { folio, nombre, categoria } = nodo.getParticipante();
+
+      const existeObjeto = arreglo.some(
+        (obj) =>
+          obj.folio === folio &&
+          obj.nombre === nombre &&
+          obj.categoria === categoria
+      );
+  
+      if (!existeObjeto) {
+        arreglo.push({ folio, nombre, categoria });
+      }
+  
+      tAA(nodo.izquierda);
+      tAA(nodo.derecha);
+    };
+  
+    tAA(arbol);
+    return arreglo;
+  }
+  
+
+}
 //---------------------------------------------------------------------------------------------------------------------------
 const Historial = () => {
-  const arbol = new SplayTree();
+  const arbolParticipantes = new ArbolParticipantes();
   const [showModal, setShowModal] = useState(false);
   const [alumno, setAlumno] = useState({});
   const [Nombres, setNombres] = useState({});
@@ -34,8 +222,6 @@ const Historial = () => {
   };
 
   const generarNumero = () =>{
-    let llaves = arbol.keys();
-    console.log(llaves);
     const min = 1000;
     const max = 9999;
     var numero = numero = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -46,11 +232,11 @@ const Historial = () => {
     if(nombre.trim()!=="" && categoria !== "Escoja la categoría"){
       setNombres((prevState) => ({
         ...prevState,
-        [participante]: Nombres,
+        [participante]: nombre,
       }));
       setCategorias((prevState) => ({
         ...prevState,
-        [participante]: Categorias,
+        [participante]: categoria,
       }));
     }
     else{
@@ -58,31 +244,71 @@ const Historial = () => {
     }
   }
 
+
   useState(() => {
-    const initialStatus = {};
-    const initialStatus1 = {};
+    const participante = [
+      { folio: generarNumero(), nombre: "María Antonieta de las Nieves", categoria: "Avanzado" },
+      { folio: generarNumero(), nombre: 'Alejandra López García', categoria: 'Principiante' },
+      { folio: generarNumero(), nombre: 'Juan Hernández Martínez', categoria: 'Intermedio' },
+      { folio: generarNumero(), nombre: 'María Rodríguez Torres', categoria: 'Avanzado' },
+      { folio: generarNumero(), nombre: 'Pedro Sánchez González', categoria: 'Principiante' }
+    ];
+
     participante.forEach((participante) => {
-      initialStatus[participante.folio] = '';
-      initialStatus1[participante.folio] = '';
+      arbolParticipantes.addNodo(participante.folio, participante.categoria, participante.nombre);
     });
-    setNombres(initialStatus);
-    setCategorias(initialStatus1);
+    
+  });
+
+  const renderizarParticipantes = () => {
+    return(
+      <Row>
+        <Col className="Tablita">
+          <Table id="Tablita" striped bordered style={{ width: "340%" }}>
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Nombre</th>
+                <th>Categoria</th>
+                <th>Eliminar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentparticipante.map((participante) => (
+                <tr key={participante.folio}>
+                  <td>{participante.folio}</td>
+                  <td>{participante.nombre}</td>
+                  <td>{Categorias[participante.folio]}</td>
+                  <td>
+                    <Button
+                      variant="light"
+                      color="blue"
+                    >Eliminar</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        </Col>
+      </Row>
+    );
   }
 
-  )
-  const participante = [{ folio: generarNumero(), nombre: "", categoria: "", }];
-
   //----------------------------------------------------Tabla-------------------------------------------------------------
+  const arbol = new ArbolParticipantes();
+
+  const alumnos = arbol.toArrayArbol(arbol.raiz);
+  console.log(alumnos);
   const indexOfLastparticipante = currentPage * participantePerPage;
   const indexOfFirstparticipante =
     indexOfLastparticipante - participantePerPage;
   const currentparticipante = searchFolio
-    ? participante.filter(
-        (participante) => participante.folio.toString()===searchFolio
+    ? alumnos.filter(
+        (alumnos) => alumnos.folio.toString()===searchFolio
       )
-    : participante.slice(indexOfFirstparticipante, indexOfLastparticipante);
+    : alumnos.slice(indexOfFirstparticipante, indexOfLastparticipante);
 
-  const totalPages = Math.ceil(participante.length / participantePerPage);
+  const totalPages = Math.ceil(alumnos.length / participantePerPage);
 
   return (
     <div>
@@ -116,37 +342,7 @@ const Historial = () => {
       </div>
       
       <div className="Tablita">
-        <Row>
-          <Col></Col>
-          <Col className="Tablita">
-            <Table id="Tablita" striped bordered style={{ width: "340%" }}>
-              <thead>
-                <tr>
-                  <th>Folio</th>
-                  <th>Nombre</th>
-                  <th>Categoria</th>
-                  <th>Eliminar</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentparticipante.map((participante) => (
-                  <tr key={participante.folio}>
-                    <td>{participante.folio}</td>
-                    <td>{Nombres[participante.folio]}</td>
-                    <td>{Categorias[participante.folio]}</td>
-                    <td>
-                      <Button
-                        variant="light"
-                        color="blue"
-                      >Eliminar</Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </Col>
-          <Col></Col>
-        </Row>
+        {renderizarParticipantes()}
       </div>
       <div>
         <ul className="pagination" style={{ color: "red" }}>
@@ -161,7 +357,16 @@ const Historial = () => {
           ))}
         </ul>
       </div>
-      <div>
+      
+      
+    </div>
+  );
+};
+
+
+export default Historial;
+
+{/* <div>
         <Form style={{backgroundColor:'rgba(196, 196, 196)', width:'50%', margin:"0 auto", paddingBlock:'2%'}}>
           <Form.Group className="mb-3" controlId="exampleForm.ControlInput1" style={{width: "50%", margin:"0 auto"}}>
             <Form.Label>Ingresar nombre</Form.Label>
@@ -193,16 +398,4 @@ const Historial = () => {
             </Button>
           </Form.Group>
         </Form>
-      </div>
-      
-    </div>
-  );
-};
-
-
-function crearAlumno(nombre, folio, categoria){
-  var alumno = {folio, nombre, categoria}
-  return alumno;
-}
-
-export default Historial;
+      </div> */}
