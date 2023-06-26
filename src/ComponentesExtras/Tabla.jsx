@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Table, Button, FormGroup } from "react-bootstrap";
 import "./Tabla.css";
 import { Col, Row, Form } from "react-bootstrap";
@@ -206,28 +206,26 @@ const Historial = () => {
   const [Nombres, setNombres] = useState({});
   const [Categorias, setCategorias] = useState({});
   // const [participanteIdSeleccionado, setparticipanteIdSeleccionado] = useState(null);
-  const [participantePerPage, setparticipantePerPage] = useState(5);
+
   const [alumnosArbol, setAlumnosArbol] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchFolio, setSearchFolio] = useState('');
-  const [folio, setfolio] = useState(null);
+ 
+  const [folio, setFolio] = useState(null);
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState("");
-
+  const [searchFolio, setSearchFolio] = useState('');
+  const [folioSeleccionado, setFolioSeleccionado] = useState(null);
   //--------------------------------------------------------------------------------------------------------------------------
-  const handleparticipantePerPageChange = (event) => {
-    setparticipantePerPage(Number(event.target.value));
-    setCurrentPage(1);
-  };
+ 
+ 
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-    setSearchFolio('');
-  };
+//   function searchFolio(folio){
 
-  const handleSearchIdChange = (event) => {
-    setSearchFolio(event.target.value);
-  };
+//     return function(x){
+//       return x.folio.includes(folio) || !folio;
+//     }
+// }
+
+
 
   const generarNumero = () =>{
     const min = 1000;
@@ -245,6 +243,12 @@ const Historial = () => {
       { folio: generarNumero(), nombre: 'María Rodríguez Torres', categoria: 'Avanzado' },
       { folio: generarNumero(), nombre: 'Pedro Sánchez González', categoria: 'Principiante' }
     ];
+
+
+
+
+
+
 
     participante.forEach((participante) => {
       arbolParticipantes.addNodo(participante.folio, participante.categoria, participante.nombre);
@@ -300,44 +304,29 @@ const Historial = () => {
 
   //----------------------------------------------------Tabla-------------------------------------------------------------
 
-  const alumnos = arbolParticipantes.toArrayArbol(arbolParticipantes.raiz);
+  const alumnos =arbolParticipantes.toArrayArbol(arbolParticipantes.raiz);
+ 
+  
+//   function searchFolio(folio){
 
-  const indexOfLastparticipante = currentPage * participantePerPage;
-  const indexOfFirstparticipante =
-    indexOfLastparticipante - participantePerPage;
-  const currentparticipante = searchFolio
-    ? alumnos.filter(
-        (alumnos) => alumnos.folio.toString()===searchFolio
-      )
-    : alumnos.slice(indexOfFirstparticipante, indexOfLastparticipante);
+//     return function(x){
+//       return x.folio.includes(folio) || !folio;
+//     }
 
-  const totalPages = Math.ceil(alumnos.length / participantePerPage);
-
+// }
   return (
     <div>
       <div>
         <Row>
           <Col>
-            <div style={{ marginBottom: "10px" }} className="agrupar"> 
-              <span>Agrupar participante por:</span>
-              <select
-                value={participantePerPage}
-                onChange={handleparticipantePerPageChange}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-              </select>
-              
-            </div>
+           
           </Col>
           <Col>
             <div style={{ marginLeft: "15%" }} className="busqueda">
               <label>Buscar participante por folio: </label>
               <input
                 type="text"
-                value={searchFolio}
-                onChange={() => handleSearchIdChange()}
+              
               />
             </div>
           </Col>
@@ -347,58 +336,13 @@ const Historial = () => {
       <div className="Tablita">
         {renderizarParticipantes()}
       </div>
-      <div>
-        <ul className="pagination" style={{ color: "red" }}>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <li
-              key={i + 1}
-              className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
-              onClick={() => handlePageChange(i + 1)}
-            >
-              <span className="page-link">{i + 1}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-      
+     
       
     </div>
   );
+ 
 };
 
 
 export default Historial;
 
-{/* <div>
-        <Form style={{backgroundColor:'rgba(196, 196, 196)', width:'50%', margin:"0 auto", paddingBlock:'2%'}}>
-          <Form.Group className="mb-3" controlId="exampleForm.ControlInput1" style={{width: "50%", margin:"0 auto"}}>
-            <Form.Label>Ingresar nombre</Form.Label>
-            <Form.Control 
-              value={nombre} 
-              onChange={ev => {setNombre(ev.target.value)}}
-              type="text" 
-              placeholder="Nombre..." />
-          </Form.Group>
-          <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1" style={{width: "50%", margin:"0 auto"}}>
-            <Form.Label>Ingresar categoría</Form.Label>
-            <Form.Select onChange={ev => {setCategoria(ev.target.value)}}>
-              <option >Escoja la categoría</option>
-              <option value="1">Principiante</option>
-              <option value="2">Intermediario</option>
-              <option value="3">Avanzado</option>
-            </Form.Select>
-          </Form.Group>
-          <Form.Group className="d-flex justify-content-center" onClick={() =>{
-            setfolio(generarNumero())
-            setAlumno(crearAlumno(nombre, folio, categoria))
-            creacionAlumno(participante, nombre, categoria)
-            arbol.insert(folio, alumno);
-          }
-            
-          }>
-            <Button className="btn btn-success mt-3">
-                Guardar alumno
-            </Button>
-          </Form.Group>
-        </Form>
-      </div> */}
