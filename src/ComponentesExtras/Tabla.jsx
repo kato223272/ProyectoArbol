@@ -173,44 +173,46 @@ const Historial = () => {
     return numero;
   };
 
+  const participantes = [
+    {
+      folio: generarNumero(),
+      nombre: "María Antonieta de las Nieves",
+      categoria: "Avanzado",
+    },
+    {
+      folio: generarNumero(),
+      nombre: "Alejandra López García",
+      categoria: "Principiante",
+    },
+    {
+      folio: generarNumero(),
+      nombre: "Juan Hernández Martínez",
+      categoria: "Intermedio",
+    },
+    {
+      folio: generarNumero(),
+      nombre: "María Rodríguez Torres",
+      categoria: "Avanzado",
+    },
+    {
+      folio: generarNumero(),
+      nombre: "Pedro Sánchez González",
+      categoria: "Principiante",
+    },
+  ];
+
   useEffect(() => {
-    const participantes = [
-      {
-        folio: generarNumero(),
-        nombre: "María Antonieta de las Nieves",
-        categoria: "Avanzado",
-      },
-      {
-        folio: generarNumero(),
-        nombre: "Alejandra López García",
-        categoria: "Principiante",
-      },
-      {
-        folio: generarNumero(),
-        nombre: "Juan Hernández Martínez",
-        categoria: "Intermedio",
-      },
-      {
-        folio: generarNumero(),
-        nombre: "María Rodríguez Torres",
-        categoria: "Avanzado",
-      },
-      {
-        folio: generarNumero(),
-        nombre: "Pedro Sánchez González",
-        categoria: "Principiante",
-      },
-    ];
+    if (alumnosArbol.length === 0) {
+      participantes.forEach((participante) => {
+        arbolParticipantes.addNodo(
+          participante.folio,
+          participante.categoria,
+          participante.nombre
+        );
+      });    
 
-    participantes.forEach((participante) => {
-      arbolParticipantes.addNodo(
-        participante.folio,
-        participante.categoria,
-        participante.nombre
-      );
-    });
-
-    setAlumnosArbol(arbolParticipantes.toArrayArbol(arbolParticipantes.raiz));
+      setAlumnosArbol(arbolParticipantes.toArrayArbol(arbolParticipantes.raiz));
+    }
   }, []);
 
   const handleAlumnoChange = (index) => {
@@ -260,7 +262,7 @@ const Historial = () => {
               </tr>
             </thead>
             <tbody>
-              {participantes.map((participante, index) => (
+              {participantesUnicos.map((participante, index) => (
                 <tr key={participante.folio}>
                   <td>{participante.folio}</td>
                   <td>{participante.nombre}</td>
